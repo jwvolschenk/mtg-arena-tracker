@@ -21,6 +21,9 @@ model Member {
   matchesAsPlayer2 Matchup[]          @relation("player2")
   resultsWon       MatchResult[]      @relation("winner")
   resultsLost      MatchResult[]      @relation("loser")
+  challengesAsPlayer1 ChallengeMatch[] @relation("challengePlayer1")
+  challengesAsPlayer2 ChallengeMatch[] @relation("challengePlayer2")
+  challengesWon       ChallengeMatch[] @relation("challengeWinner")
 }
 
 model Season {
@@ -84,4 +87,28 @@ model MatchResult {
   matchup Matchup @relation(fields: [matchupId], references: [id])
   winner  Member? @relation("winner", fields: [winnerId], references: [id])
   loser   Member? @relation("loser", fields: [loserId], references: [id])
+}
+
+/**
+ * A one-off match outside any season's round-robin — a manual pairing or
+ * a challenge. Counts fully towards ELO and all-time W/L/D records, but
+ * never towards season standings.
+ */
+model ChallengeMatch {
+  id               String   @id @default(cuid())
+  player1Id        String
+  player2Id        String
+  winnerId         String?
+  isDraw           Boolean  @default(false)
+  player1EloBefore Int
+  player1EloAfter  Int
+  player2EloBefore Int
+  player2EloAfter  Int
+  playedAt         DateTime @default(now())
+
+  player1 Member  @relation("challengePlayer1", fields: [player1Id], references: [id])
+  player2 Member  @relation("challengePlayer2", fields: [player2Id], references: [id])
+  winner  Member? @relation("challengeWinner", fields: [winnerId], references: [id])
+
+  @@index([playedAt])
 }

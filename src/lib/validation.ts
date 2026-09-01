@@ -35,6 +35,20 @@ export const recordResultSchema = z
     { message: 'Provide either winnerId or isDraw: true' },
   );
 
+export const challengeSchema = z
+  .object({
+    player1Id: z.string().min(1, 'Pick the first duelist'),
+    player2Id: z.string().min(1, 'Pick the opponent'),
+    winnerId: z.string().min(1).optional(),
+    isDraw: z.boolean().optional(),
+  })
+  .refine((data) => data.player1Id !== data.player2Id, {
+    message: 'A duelist cannot challenge themselves',
+  })
+  .refine((data) => data.isDraw === true || typeof data.winnerId === 'string', {
+    message: 'Provide either winnerId or isDraw: true',
+  });
+
 /** Returns the first zod issue's message, for surfacing in API errors. */
 export function firstIssueMessage(error: z.ZodError): string {
   return error.issues[0]?.message ?? 'Invalid request';

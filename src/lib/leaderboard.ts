@@ -13,14 +13,18 @@ export interface LeaderboardEntry {
 
 /**
  * Active members sorted by ELO (desc) with all-time W/L/D records
- * aggregated from every recorded match result.
+ * aggregated from every recorded match result — season fixtures and
+ * one-off challenges alike.
  */
 export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   const members = await prisma.member.findMany({
     where: { active: true },
     orderBy: [{ elo: 'desc' }, { name: 'asc' }],
   });
-  const results = await prisma.matchResult.findMany({ include: { matchup: true } });
+  const [results, challenges] = await Promise.all([
+    prisma.matchResult.findMany({ include: { matchup: true } }),
+    prisma.challengeMatch.findMany(),
+  ]);
 
   const stats = new Map<string, { wins: number; losses: number; draws: number }>();
   const statsFor = (id: string) => {
@@ -39,6 +43,17 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     } else if (result.winnerId && result.loserId) {
       statsFor(result.winnerId).wins++;
       statsFor(result.loserId).losses++;
+    }
+  }
+
+  for (const challenge of challenges) {
+    if (challenge.isDraw) {
+      statsFor(challenge.player1Id).draws++;
+      statsFor(challenge.player2Id).draws++;
+    } else if (challenge.winnerId) {
+      statsFor(challenge.winnerId).wins++;
+      statsFor(challenge.winnerId === challenge.player1Id ? challenge.player2Id : challenge.player1Id)
+        .losses++;
     }
   }
 
