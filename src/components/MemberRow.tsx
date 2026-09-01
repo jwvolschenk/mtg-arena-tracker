@@ -7,6 +7,7 @@ import Avatar from './Avatar';
 export interface MemberInfo {
   id: string;
   name: string;
+  nickname: string | null;
   avatarPath: string | null;
   elo: number;
   active: boolean;
@@ -72,6 +73,14 @@ export default function MemberRow({ member }: { member: MemberInfo }) {
             required
             className="input sm:flex-1"
           />
+          <input
+            name="nickname"
+            type="text"
+            defaultValue={member.nickname ?? ''}
+            maxLength={40}
+            placeholder="Nickname / game name"
+            className="input sm:flex-1"
+          />
           <label className="btn-ghost cursor-pointer sm:w-48">
             New avatar (optional)
             <input
@@ -106,6 +115,9 @@ export default function MemberRow({ member }: { member: MemberInfo }) {
         <div className="min-w-0">
           <p className={`truncate text-sm font-bold ${member.active ? 'text-slate-100' : 'text-slate-400'}`}>
             {member.name}
+            {member.nickname && (
+              <span className="ml-1.5 text-xs font-normal text-slate-400">({member.nickname})</span>
+            )}
             {!member.active && (
               <span className="badge ml-2 bg-plum/40 text-slate-300">Archived</span>
             )}

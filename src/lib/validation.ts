@@ -6,6 +6,13 @@ export const memberNameSchema = z
   .min(1, 'Name is required')
   .max(40, 'Name must be 40 characters or fewer');
 
+export const nicknameSchema = z
+  .string()
+  .trim()
+  .max(40, 'Nickname must be 40 characters or fewer')
+  .optional()
+  .transform((v: string | undefined) => (v === '' ? null : v));
+
 export const createSeasonSchema = z.object({
   name: z
     .string()

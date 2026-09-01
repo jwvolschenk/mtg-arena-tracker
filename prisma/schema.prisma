@@ -10,6 +10,7 @@ datasource db {
 model Member {
   id         String   @id @default(cuid())
   name       String   @unique
+  nickname   String?
   avatarPath String?
   elo        Int      @default(1200)
   active     Boolean  @default(true)

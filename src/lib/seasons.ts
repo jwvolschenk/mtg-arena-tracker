@@ -147,6 +147,7 @@ export async function recordResult(
 export interface SeasonStanding {
   memberId: string;
   name: string;
+  nickname: string | null;
   avatarPath: string | null;
   wins: number;
   losses: number;
@@ -161,6 +162,7 @@ export function computeStandings(season: SeasonDetail): SeasonStanding[] {
     standings.set(participant.memberId, {
       memberId: participant.memberId,
       name: participant.member.name,
+      nickname: participant.member.nickname,
       avatarPath: participant.member.avatarPath,
       wins: 0,
       losses: 0,

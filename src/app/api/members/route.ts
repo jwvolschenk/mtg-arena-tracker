@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiError, errorResponse } from '@/lib/api';
 import { createMember, listMembers, type MemberFilter } from '@/lib/members';
-import { firstIssueMessage, memberNameSchema } from '@/lib/validation';
+import { firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +26,11 @@ export async function POST(req: NextRequest) {
     const avatar = form.get('avatar');
     const avatarFile = avatar instanceof File && avatar.size > 0 ? avatar : null;
 
-    const member = await createMember(parsed.data, avatarFile);
+    const nicknameRaw = form.get('nickname');
+    const nicknameParsed = nicknameSchema.safeParse(nicknameRaw ?? undefined);
+    const nickname = nicknameParsed.success ? nicknameParsed.data : null;
+
+    const member = await createMember(parsed.data, avatarFile, nickname);
     return NextResponse.json({ member }, { status: 201 });
   } catch (err) {
     return errorResponse(err);

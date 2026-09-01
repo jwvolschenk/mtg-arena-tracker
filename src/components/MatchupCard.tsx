@@ -83,7 +83,7 @@ export default function MatchupCard({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar name={player1.name} avatarPath={player1.avatarPath} size={44} dimmed={completed} />
+          <Avatar name={player1.name} avatarPath={player1.avatarPath} size={56} dimmed={completed} />
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-slate-100">
               {player1.name}
@@ -103,7 +103,7 @@ export default function MatchupCard({
         </div>
 
         <div className="flex min-w-0 flex-row-reverse items-center gap-3 text-right">
-          <Avatar name={player2.name} avatarPath={player2.avatarPath} size={44} dimmed={completed} />
+          <Avatar name={player2.name} avatarPath={player2.avatarPath} size={56} dimmed={completed} />
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-slate-100">
               {player2.name}

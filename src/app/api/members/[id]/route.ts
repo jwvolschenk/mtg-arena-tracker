@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiError, errorResponse } from '@/lib/api';
 import { updateMember } from '@/lib/members';
-import { firstIssueMessage, memberNameSchema } from '@/lib/validation';
+import { firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,13 +12,20 @@ export async function PATCH(
   try {
     const form = await req.formData();
 
-    const data: { name?: string; active?: boolean; avatar?: File | null } = {};
+    const data: { name?: string; nickname?: string | null; active?: boolean; avatar?: File | null } = {};
 
     const name = form.get('name');
     if (name !== null) {
       const parsed = memberNameSchema.safeParse(name);
       if (!parsed.success) throw new ApiError(400, firstIssueMessage(parsed.error));
       data.name = parsed.data;
+    }
+
+    const nickname = form.get('nickname');
+    if (nickname !== null) {
+      const parsed = nicknameSchema.safeParse(nickname);
+      if (!parsed.success) throw new ApiError(400, firstIssueMessage(parsed.error));
+      data.nickname = parsed.data ?? null;
     }
 
     const active = form.get('active');

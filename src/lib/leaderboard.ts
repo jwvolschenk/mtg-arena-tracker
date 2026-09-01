@@ -3,6 +3,7 @@ import { prisma } from './prisma';
 export interface LeaderboardEntry {
   memberId: string;
   name: string;
+  nickname: string | null;
   avatarPath: string | null;
   elo: number;
   wins: number;
@@ -46,6 +47,7 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
     return {
       memberId: member.id,
       name: member.name,
+      nickname: member.nickname,
       avatarPath: member.avatarPath,
       elo: member.elo,
       ...record,

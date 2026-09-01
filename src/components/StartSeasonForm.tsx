@@ -7,6 +7,7 @@ import Avatar from './Avatar';
 interface MemberOption {
   id: string;
   name: string;
+  nickname: string | null;
   avatarPath: string | null;
   elo: number;
 }
@@ -118,6 +119,9 @@ export default function StartSeasonForm({
                   <Avatar name={member.name} avatarPath={member.avatarPath} size={32} />
                   <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-100">
                     {member.name}
+                    {member.nickname && (
+                      <span className="ml-1 text-xs font-normal text-slate-400">({member.nickname})</span>
+                    )}
                   </span>
                   <span className="text-xs text-slate-400">{member.elo}</span>
                 </label>

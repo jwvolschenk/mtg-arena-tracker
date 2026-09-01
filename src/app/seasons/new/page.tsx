@@ -43,6 +43,7 @@ export default async function NewSeasonPage() {
           members={members.map((m) => ({
             id: m.id,
             name: m.name,
+            nickname: m.nickname,
             avatarPath: m.avatarPath,
             elo: m.elo,
           }))}

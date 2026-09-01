@@ -7,6 +7,7 @@ export default function AddMemberForm() {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [name, setName] = useState('');
+  const [nickname, setNickname] = useState('');
   const [avatar, setAvatar] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +19,7 @@ export default function AddMemberForm() {
     try {
       const form = new FormData();
       form.set('name', name);
+      if (nickname) form.set('nickname', nickname);
       if (avatar) form.set('avatar', avatar);
 
       const res = await fetch('/api/members', { method: 'POST', body: form });
@@ -26,6 +28,7 @@ export default function AddMemberForm() {
         throw new Error(data?.error ?? 'Failed to add member');
       }
       setName('');
+      setNickname('');
       setAvatar(null);
       formRef.current?.reset();
       router.refresh();
@@ -49,6 +52,14 @@ export default function AddMemberForm() {
           placeholder="Name"
           maxLength={40}
           required
+          className="input sm:flex-1"
+        />
+        <input
+          type="text"
+          value={nickname}
+          onChange={(event) => setNickname(event.target.value)}
+          placeholder="Nickname / game name"
+          maxLength={40}
           className="input sm:flex-1"
         />
         <label className="btn-ghost cursor-pointer sm:w-48">
