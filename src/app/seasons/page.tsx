@@ -1,0 +1,73 @@
+import Link from 'next/link';
+import { getSeasons } from '@/lib/seasons';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata = { title: 'Seasons — MTG Arena Tracker' };
+
+export default async function SeasonsPage() {
+  const seasons = await getSeasons();
+  const hasActive = seasons.some((s) => s.status === 'ACTIVE');
+
+  return (
+    <div className="space-y-8">
+      <header className="fade-in-up flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-glow text-3xl font-black uppercase tracking-wide text-slate-100">
+            Seasons
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Round-robin history — every season, preserved for posterity.
+          </p>
+        </div>
+        {!hasActive && (
+          <Link href="/seasons/new" className="btn-primary shrink-0">
+            ⚔️ Start season
+          </Link>
+        )}
+      </header>
+
+      {seasons.length === 0 ? (
+        <p className="card p-8 text-center text-sm text-slate-400">
+          No seasons yet.{' '}
+          <Link href="/seasons/new" className="text-accent hover:underline">
+            Start the first one
+          </Link>
+          .
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {seasons.map((season) => {
+            const total = season.matchups.length;
+            const completed = season.matchups.filter((m) => m.status === 'COMPLETED').length;
+            return (
+              <li key={season.id}>
+                <Link
+                  href={`/seasons/${season.id}`}
+                  className="card fade-in-up flex items-center justify-between gap-4 p-4 transition hover:border-accent/40 hover:shadow-glow"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-bold text-slate-100">{season.name}</p>
+                    <p className="mt-0.5 text-xs text-slate-500">
+                      Started {season.createdAt.toLocaleDateString()} ·{' '}
+                      {season.participants.length} duelists · {completed}/{total} matches
+                    </p>
+                  </div>
+                  {season.status === 'ACTIVE' ? (
+                    <span className="badge shrink-0 border border-accent/40 bg-accent/10 text-accent">
+                      ● Active
+                    </span>
+                  ) : (
+                    <span className="badge shrink-0 bg-plum/40 text-slate-300">
+                      ✦ Completed
+                    </span>
+                  )}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}

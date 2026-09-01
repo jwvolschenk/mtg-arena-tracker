@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Member {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  avatarPath String?
+  elo        Int      @default(1200)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  seasonEntries    SeasonParticipant[]
+  matchesAsPlayer1 Matchup[]          @relation("player1")
+  matchesAsPlayer2 Matchup[]          @relation("player2")
+  resultsWon       MatchResult[]      @relation("winner")
+  resultsLost      MatchResult[]      @relation("loser")
+}
+
+model Season {
+  id          String       @id @default(cuid())
+  name        String
+  status      SeasonStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+
+  participants SeasonParticipant[]
+  matchups     Matchup[]
+}
+
+enum SeasonStatus {
+  ACTIVE
+  COMPLETED
+}
+
+model SeasonParticipant {
+  seasonId String
+  memberId String
+  season   Season @relation(fields: [seasonId], references: [id])
+  member   Member @relation(fields: [memberId], references: [id])
+
+  @@id([seasonId, memberId])
+}
+
+model Matchup {
+  id        String        @id @default(cuid())
+  seasonId  String
+  round     Int
+  player1Id String
+  player2Id String
+  status    MatchupStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+
+  season  Season       @relation(fields: [seasonId], references: [id])
+  player1 Member       @relation("player1", fields: [player1Id], references: [id])
+  player2 Member       @relation("player2", fields: [player2Id], references: [id])
+  result  MatchResult?
+}
+
+enum MatchupStatus {
+  PENDING
+  COMPLETED
+}
+
+model MatchResult {
+  id               String   @id @default(cuid())
+  matchupId        String   @unique
+  winnerId         String?
+  loserId          String?
+  isDraw           Boolean  @default(false)
+  player1EloBefore Int
+  player1EloAfter  Int
+  player2EloBefore Int
+  player2EloAfter  Int
+  recordedAt       DateTime @default(now())
+
+  matchup Matchup @relation(fields: [matchupId], references: [id])
+  winner  Member? @relation("winner", fields: [winnerId], references: [id])
+  loser   Member? @relation("loser", fields: [loserId], references: [id])
+}
