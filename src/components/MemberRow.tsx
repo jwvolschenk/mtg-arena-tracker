@@ -116,7 +116,7 @@ export default function MemberRow({ member }: { member: MemberInfo }) {
           <p className={`truncate text-sm font-bold ${member.active ? 'text-slate-100' : 'text-slate-400'}`}>
             {member.name}
             {member.nickname && (
-              <span className="ml-1.5 text-xs font-normal text-slate-400">({member.nickname})</span>
+              <span className="ml-1.5 text-xs font-normal text-slate-400">“{member.nickname}”</span>
             )}
             {!member.active && (
               <span className="badge ml-2 bg-plum/40 text-slate-300">Archived</span>

@@ -11,13 +11,16 @@ export default function Avatar({
   avatarPath,
   size = 40,
   dimmed = false,
+  sizeClassName,
 }: {
   name: string;
   avatarPath: string | null;
   size?: number;
   dimmed?: boolean;
+  /** Tailwind size classes; when given they replace the fixed inline size (e.g. "h-10 w-10 sm:h-14 sm:w-14"). */
+  sizeClassName?: string;
 }) {
-  const style = { width: size, height: size };
+  const style = sizeClassName ? undefined : { width: size, height: size };
   const ring = dimmed ? 'ring-2 ring-white/5' : 'ring-2 ring-accent/40';
 
   if (avatarPath) {
@@ -27,7 +30,7 @@ export default function Avatar({
         src={`/api/avatars/${avatarPath}`}
         alt={`${name}'s avatar`}
         style={style}
-        className={`rounded-full object-cover ${ring}`}
+        className={`${sizeClassName ?? ''} rounded-full object-cover ${ring}`}
       />
     );
   }
@@ -45,10 +48,10 @@ export default function Avatar({
       aria-hidden
       style={{
         ...style,
-        fontSize: Math.max(10, Math.round(size * 0.38)),
+        ...(sizeClassName ? {} : { fontSize: Math.max(10, Math.round(size * 0.38)) }),
         background: `linear-gradient(135deg, hsl(${hue} 70% 42%), hsl(${(hue + 35) % 360} 60% 28%))`,
       }}
-      className={`flex shrink-0 select-none items-center justify-center rounded-full font-bold text-white ${dimmed ? 'ring-2 ring-white/5 opacity-60' : 'ring-2 ring-white/10'}`}
+      className={`${sizeClassName ?? ''} flex shrink-0 select-none items-center justify-center rounded-full font-bold text-white ${dimmed ? 'ring-2 ring-white/5 opacity-60' : 'ring-2 ring-white/10'}`}
     >
       {initials}
     </div>

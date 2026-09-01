@@ -41,9 +41,7 @@ export default function AddMemberForm() {
 
   return (
     <form ref={formRef} onSubmit={onSubmit} className="card p-4">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-        Add a duelist
-      </h2>
+      <h2 className="section-title">Add a duelist</h2>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input
           type="text"

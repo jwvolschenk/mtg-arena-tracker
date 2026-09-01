@@ -8,23 +8,48 @@
 
 body {
   background:
-    radial-gradient(1100px 550px at 85% -10%, rgba(0, 86, 140, 0.28), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(80, 65, 87, 0.22), transparent 60%),
-    #181c22;
+    radial-gradient(1100px 550px at 85% -10%, rgba(0, 86, 140, 0.32), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(80, 65, 87, 0.26), transparent 60%),
+    radial-gradient(1600px 800px at 50% 130%, rgba(0, 174, 239, 0.07), transparent 55%),
+    #12151c;
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-white/5 bg-card shadow-lg shadow-black/30;
+    @apply rounded-xl border border-white/10 bg-card shadow-lg shadow-black/30;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0) 32%);
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg bg-accent-strong px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-accent hover:shadow-glow active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-lg px-4 py-2 text-sm font-bold uppercase tracking-wider text-slate-950 transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    background-image: linear-gradient(135deg, #00c0f3 0%, #0084c9 100%);
+    box-shadow:
+      0 0 18px rgba(0, 192, 243, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .btn-primary:hover {
+    background-image: linear-gradient(135deg, #2ecdfa 0%, #0093d6 100%);
+    box-shadow:
+      0 0 28px rgba(0, 192, 243, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  /* Foil shine that sweeps across on hover */
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.45) 50%, transparent 60%);
+    transform: translateX(-130%);
+    transition: transform 0.6s ease;
+  }
+  .btn-primary:hover::after {
+    transform: translateX(130%);
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent/50 hover:bg-white/10 hover:text-accent active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent/50 hover:bg-white/10 hover:text-accent hover:shadow-glow active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-danger {
@@ -37,6 +62,24 @@ body {
 
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  /* Small engraved-caps label above titles (Cinzel) */
+  .kicker {
+    @apply flex items-center gap-2.5 text-[11px] font-bold uppercase tracking-[0.32em] text-accent;
+  }
+  .kicker::before {
+    content: '';
+    @apply h-px w-7 bg-gradient-to-r from-accent to-transparent;
+  }
+
+  /* Section headings inside pages (Cinzel + mana diamond bullet) */
+  .section-title {
+    @apply flex items-center gap-3 font-display text-base font-bold uppercase tracking-[0.18em] text-slate-200;
+  }
+  .section-title::before {
+    content: '◆';
+    @apply text-[9px] leading-none text-accent;
   }
 }
 
@@ -51,9 +94,38 @@ body {
   .text-glow-soft {
     text-shadow: 0 0 12px rgba(0, 192, 243, 0.4);
   }
+
+  .text-glow-gold {
+    text-shadow:
+      0 0 8px rgba(217, 180, 91, 0.55),
+      0 0 26px rgba(217, 180, 91, 0.28);
+  }
+
+  /* Foil-style gradient border (champion rows, featured cards) */
+  .foil-frame {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#20242f, #20242f) padding-box,
+      linear-gradient(135deg, rgba(0, 192, 243, 0.55), rgba(217, 180, 91, 0.4) 50%, rgba(80, 65, 87, 0.55)) border-box;
+  }
 }
 
-/* Subtle glow pulse for the leaderboard's #1 spot */
+/* Subtle gold pulse for the leaderboard's #1 spot */
+@keyframes glow-pulse-gold {
+  0%,
+  100% {
+    box-shadow: 0 0 10px 0 rgba(217, 180, 91, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 26px 4px rgba(217, 180, 91, 0.45);
+  }
+}
+
+.glow-pulse-gold {
+  animation: glow-pulse-gold 2.5s ease-in-out infinite;
+}
+
+/* Cyan pulse (featured pending matchup / active elements) */
 @keyframes glow-pulse {
   0%,
   100% {
@@ -83,4 +155,46 @@ body {
 
 .fade-in-up {
   animation: fade-in-up 0.25s ease-out both;
+}
+
+/* Gentle drift for decorative empty-state art */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Custom scrollbar to match the theme */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #12151c;
+}
+::-webkit-scrollbar-thumb {
+  background: #2c3648;
+  border-radius: 8px;
+  border: 2px solid #12151c;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00568c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

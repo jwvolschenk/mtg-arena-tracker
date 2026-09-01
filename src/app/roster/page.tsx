@@ -1,5 +1,6 @@
 import AddMemberForm from '@/components/AddMemberForm';
 import MemberRow, { type MemberInfo } from '@/components/MemberRow';
+import PageBanner from '@/components/PageBanner';
 import { listMembers } from '@/lib/members';
 
 export const dynamic = 'force-dynamic';
@@ -13,15 +14,12 @@ export default async function RosterPage() {
 
   return (
     <div className="space-y-8">
-      <header className="fade-in-up">
-        <h1 className="text-glow text-3xl font-black uppercase tracking-wide text-slate-100">
-          Team roster
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
+      <PageBanner image="/art/roster-beacon.jpg" kicker="The gathering" title="Team Roster">
+        <p className="text-sm text-slate-300">
           {active.length} active {active.length === 1 ? 'duelist' : 'duelists'}
           {archived.length > 0 && ` · ${archived.length} archived`}
         </p>
-      </header>
+      </PageBanner>
 
       <AddMemberForm />
 
@@ -39,7 +37,7 @@ export default async function RosterPage() {
 
       {archived.length > 0 && (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-slate-400">
+          <h2 className="section-title text-slate-400">
             Archived
             <span className="h-px flex-1 bg-gradient-to-r from-plum to-transparent" />
           </h2>

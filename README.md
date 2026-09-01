@@ -41,3 +41,17 @@ npm test        # Vitest unit tests (ELO math, round-robin scheduling)
 - Tailwind CSS (dark theme, neon-cyan accent)
 - Vitest for unit tests
 - Docker Compose: `web` + `db`, named volumes for Postgres data and uploads
+
+## Theme & artwork
+
+The UI keeps Credo Group's brand palette (electric cyan `#00C0F3`, navy
+`#00568C`, plum `#504157`) on a dark "game night" base, with Cinzel
+(engraved Trajan-style caps, the MTG logo look) for display headings and
+MTG card-art banners on each page.
+
+The banner art in `public/art/` was sourced from
+[Scryfall](https://scryfall.com) and is © Wizards of the Coast LLC. It is
+used under the [Wizards of the Coast Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy)
+— this is an unofficial, non-commercial fan tool and is not affiliated
+with or endorsed by Wizards of the Coast. Replace the files in
+`public/art/` if that ever stops fitting your use case.

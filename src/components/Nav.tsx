@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const LINKS = [
-  { href: '/', label: 'Dashboard' },
-  { href: '/roster', label: 'Roster' },
-  { href: '/seasons', label: 'Seasons' },
-  { href: '/leaderboard', label: 'Leaderboard' },
+  { href: '/', label: 'Arena', glyph: '⚔' },
+  { href: '/roster', label: 'Roster', glyph: '⚜' },
+  { href: '/seasons', label: 'Seasons', glyph: '⧗' },
+  { href: '/leaderboard', label: 'Leaderboard', glyph: '🏆' },
 ];
 
 export default function Nav() {
@@ -22,13 +22,17 @@ export default function Nav() {
           <Link
             key={link.href}
             href={link.href}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+            aria-current={active ? 'page' : undefined}
+            className={`rounded-lg px-2 py-1.5 text-sm font-semibold transition sm:px-3 ${
               active
-                ? 'bg-accent/15 text-accent text-glow-soft'
+                ? 'bg-gradient-to-b from-accent/25 to-accent/10 text-accent text-glow-soft shadow-glow ring-1 ring-accent/30'
                 : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
             }`}
           >
-            {link.label}
+            <span aria-hidden className="mr-1.5 text-xs opacity-80">
+              {link.glyph}
+            </span>
+            <span className="hidden sm:inline">{link.label}</span>
           </Link>
         );
       })}

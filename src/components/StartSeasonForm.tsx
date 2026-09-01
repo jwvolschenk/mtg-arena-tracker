@@ -78,9 +78,9 @@ export default function StartSeasonForm({
       </div>
 
       <div className="mt-5 flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
+        <h2 className="section-title">
           Duelists{' '}
-          <span className={`ml-1 ${selected.size >= 2 ? 'text-accent' : 'text-rose-400'}`}>
+          <span className={`ml-1 font-sans text-sm normal-case tracking-normal ${selected.size >= 2 ? 'text-accent' : 'text-rose-400'}`}>
             {selected.size} selected
           </span>
         </h2>
@@ -98,7 +98,7 @@ export default function StartSeasonForm({
           .
         </p>
       ) : (
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {members.map((member) => {
             const checked = selected.has(member.id);
             return (
@@ -120,7 +120,7 @@ export default function StartSeasonForm({
                   <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-100">
                     {member.name}
                     {member.nickname && (
-                      <span className="ml-1 text-xs font-normal text-slate-400">({member.nickname})</span>
+                      <span className="ml-1 text-xs font-normal text-slate-400">“{member.nickname}”</span>
                     )}
                   </span>
                   <span className="text-xs text-slate-400">{member.elo}</span>

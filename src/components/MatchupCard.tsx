@@ -7,6 +7,7 @@ import Avatar from './Avatar';
 export interface MatchupPlayer {
   id: string;
   name: string;
+  nickname?: string | null;
   avatarPath: string | null;
   elo: number;
 }
@@ -76,17 +77,30 @@ export default function MatchupCard({
   }
 
   const you = (id: string) => currentMemberId === id;
+  const nick = (p: MatchupPlayer) =>
+    p.nickname ? <span className="ml-1 font-normal text-slate-500">“{p.nickname}”</span> : null;
 
   return (
     <article
-      className={`card fade-in-up p-4 transition ${completed ? 'opacity-70 hover:opacity-100' : ''}`}
+      className={`card fade-in-up p-4 transition ${
+        completed
+          ? 'opacity-70 hover:opacity-100'
+          : 'hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-glow'
+      }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <Avatar name={player1.name} avatarPath={player1.avatarPath} size={56} dimmed={completed} />
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <Avatar
+            name={player1.name}
+            avatarPath={player1.avatarPath}
+            size={56}
+            sizeClassName="h-10 w-10 sm:h-14 sm:w-14"
+            dimmed={completed}
+          />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-100">
+            <p className="truncate text-xs font-bold text-slate-100 sm:text-sm">
               {player1.name}
+              {nick(player1)}
               {you(player1.id) && <span className="ml-1 text-xs text-accent">(you)</span>}
             </p>
             <p className="text-xs text-slate-400">{player1.elo} ELO</p>
@@ -94,7 +108,15 @@ export default function MatchupCard({
         </div>
 
         <div className="shrink-0 text-center">
-          <span className="text-glow-soft text-xs font-black tracking-widest text-accent">VS</span>
+          <div className="relative flex h-8 w-8 items-center justify-center sm:h-10 sm:w-10">
+            <span
+              aria-hidden
+              className="absolute inset-1.5 rotate-45 rounded-[5px] border border-accent/50 bg-gradient-to-br from-navy/70 to-plum/50 shadow-glow"
+            />
+            <span className="relative font-display text-[9px] font-black tracking-widest text-accent text-glow-soft sm:text-[10px]">
+              VS
+            </span>
+          </div>
           {completed && (
             <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               {result!.isDraw ? 'Draw' : 'Final'}
@@ -102,11 +124,18 @@ export default function MatchupCard({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-row-reverse items-center gap-3 text-right">
-          <Avatar name={player2.name} avatarPath={player2.avatarPath} size={56} dimmed={completed} />
+        <div className="flex min-w-0 flex-row-reverse items-center gap-2 text-right sm:gap-3">
+          <Avatar
+            name={player2.name}
+            avatarPath={player2.avatarPath}
+            size={56}
+            sizeClassName="h-10 w-10 sm:h-14 sm:w-14"
+            dimmed={completed}
+          />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-100">
+            <p className="truncate text-xs font-bold text-slate-100 sm:text-sm">
               {player2.name}
+              {nick(player2)}
               {you(player2.id) && <span className="ml-1 text-xs text-accent">(you)</span>}
             </p>
             <p className="text-xs text-slate-400">{player2.elo} ELO</p>
@@ -120,6 +149,7 @@ export default function MatchupCard({
             <>Draw — both duelists hold ground</>
           ) : (
             <>
+              <span aria-hidden>🏆</span>
               <span className="text-emerald-400">
                 {result!.winnerId === player1.id ? player1.name : player2.name} wins
               </span>

@@ -33,7 +33,10 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
     <div className="space-y-8">
       <header className="fade-in-up">
         <div className="flex items-center gap-3">
-          <Link href="/seasons" className="text-xs font-semibold text-slate-500 hover:text-accent">
+          <Link
+            href="/seasons"
+            className="text-xs font-semibold text-slate-500 transition hover:text-accent"
+          >
             ← All seasons
           </Link>
           {isActive ? (
@@ -42,7 +45,7 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
             <span className="badge bg-plum/40 text-slate-300">✦ Completed</span>
           )}
         </div>
-        <h1 className="text-glow mt-2 text-3xl font-black uppercase tracking-wide text-slate-100">
+        <h1 className="text-glow mt-2 font-display text-3xl font-black uppercase tracking-wide text-slate-100">
           {season.name}
         </h1>
         <p className="mt-1 text-sm text-slate-500">
@@ -53,7 +56,7 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
       </header>
 
       <section className="space-y-3">
-        <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-slate-300">
+        <h2 className="section-title">
           Standings
           <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
         </h2>
@@ -74,17 +77,21 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
               {standings.map((row, index) => (
                 <tr
                   key={row.memberId}
-                  className={`border-b border-white/5 last:border-0 ${
-                    index === 0 ? 'bg-accent/5' : ''
+                  className={`border-b border-white/5 transition last:border-0 hover:bg-white/[0.03] ${
+                    index === 0 ? 'bg-gold/5' : ''
                   }`}
                 >
-                  <td className="px-4 py-3 font-black text-slate-500">{index + 1}</td>
+                  <td className="px-4 py-3 font-black text-slate-500">
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                  </td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-2 font-bold text-slate-100">
                       <Avatar name={row.name} avatarPath={row.avatarPath} size={28} />
                       {row.name}
                       {row.nickname && (
-                        <span className="text-xs font-normal text-slate-400">({row.nickname})</span>
+                        <span className="text-xs font-normal text-slate-400">
+                          “{row.nickname}”
+                        </span>
                       )}
                     </span>
                   </td>
@@ -117,11 +124,11 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
         .sort((a, b) => a[0] - b[0])
         .map(([round, matchups]) => (
           <section key={round} className="space-y-3">
-            <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-slate-300">
+            <h2 className="section-title">
               Round {round}
               <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {matchups.map((matchup) => (
                 <MatchupCard key={matchup.id} matchup={matchup as MatchupData} />
               ))}

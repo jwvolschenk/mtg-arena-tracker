@@ -5,24 +5,36 @@ import { getActiveSeason, getSeasons, type SeasonDetail } from '@/lib/seasons';
 
 export const dynamic = 'force-dynamic';
 
-function SeasonProgress({ season }: { season: SeasonDetail }) {
-  const total = season.matchups.length;
-  const completed = season.matchups.filter((m) => m.status === 'COMPLETED').length;
+function SeasonProgress({ total, completed }: { total: number; completed: number }) {
   const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
   return (
-    <div className="w-full sm:w-64">
+    <div className="w-full max-w-sm">
       <div className="flex items-baseline justify-between text-xs font-semibold text-slate-400">
         <span>
-          {completed} / {total} matches
+          {completed} / {total} matches decided
         </span>
         <span className="text-accent">{pct}%</span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-panel">
+      <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-black/40 ring-1 ring-inset ring-white/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-navy via-accent-strong to-accent transition-all"
+          className="relative h-full rounded-full bg-gradient-to-r from-navy via-accent-strong to-accent transition-all"
           style={{ width: `${pct}%` }}
-        />
+        >
+          <span
+            aria-hidden
+            className="absolute inset-y-0 right-0 w-8 rounded-full bg-white/30 blur-[6px]"
+          />
+        </div>
       </div>
+    </div>
+  );
+}
+
+function StatChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/10 bg-black/30 px-3.5 py-2 backdrop-blur-sm">
+      <p className="font-display text-lg font-black leading-tight text-slate-100">{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
     </div>
   );
 }
@@ -37,37 +49,55 @@ export default async function DashboardPage() {
   if (!season) {
     const lastCompleted = seasons.find((s) => s.status === 'COMPLETED');
     return (
-      <div className="fade-in-up mx-auto mt-16 max-w-xl text-center">
-        <h1 className="text-glow text-4xl font-black uppercase tracking-wide text-slate-100">
-          No active season
-        </h1>
-        <p className="mt-3 text-sm text-slate-400">
-          The arena is quiet. Round up the crew, start a round-robin season and let
-          the ELO points flow.
-        </p>
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <Link href="/seasons/new" className="btn-primary">
-            ⚔️ Start a season
-          </Link>
-          <Link href="/leaderboard" className="btn-ghost">
-            View leaderboard
-          </Link>
-        </div>
-        {lastCompleted && (
-          <p className="mt-8 text-sm text-slate-500">
-            🏆{' '}
-            <Link href={`/seasons/${lastCompleted.id}`} className="text-accent hover:underline">
-              {lastCompleted.name}
-            </Link>{' '}
-            just finished — check the final standings.
+      <div className="fade-in-up relative mx-auto mt-8 max-w-2xl overflow-hidden rounded-2xl border border-white/10 shadow-xl shadow-black/40">
+        <div
+          aria-hidden
+          className="float absolute inset-0 bg-cover bg-center opacity-60"
+          style={{ backgroundImage: 'url(/art/empty-sanctuary.jpg)' }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-b from-base/70 via-base/85 to-base"
+        />
+        <div className="relative px-6 py-14 text-center sm:px-10">
+          <p className="kicker justify-center [&::before]:hidden [&::after]:content-[''] [&::after]:h-px [&::after]:w-7 [&::after]:bg-gradient-to-l [&::after]:from-accent [&::after]:to-transparent">
+            The arena stands silent
           </p>
-        )}
+          <h1 className="text-glow mt-3 font-display text-4xl font-black uppercase tracking-wide text-slate-100">
+            No active season
+          </h1>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400">
+            Round up the crew, start a round-robin season and let the ELO points flow.
+          </p>
+          <div className="mt-7 flex items-center justify-center gap-3">
+            <Link href="/seasons/new" className="btn-primary">
+              ⚔️ Start a season
+            </Link>
+            <Link href="/leaderboard" className="btn-ghost">
+              View leaderboard
+            </Link>
+          </div>
+          {lastCompleted && (
+            <p className="mt-8 text-sm text-slate-500">
+              🏆{' '}
+              <Link
+                href={`/seasons/${lastCompleted.id}`}
+                className="text-accent hover:underline"
+              >
+                {lastCompleted.name}
+              </Link>{' '}
+              just finished — check the final standings.
+            </p>
+          )}
+        </div>
       </div>
     );
   }
 
   const pending = season.matchups.filter((m) => m.status === 'PENDING');
   const completed = season.matchups.filter((m) => m.status === 'COMPLETED');
+  const leader = [...season.participants].sort((a, b) => b.member.elo - a.member.elo)[0];
+  const leaderNick = leader?.member.nickname ? ` “${leader.member.nickname}”` : '';
 
   const rounds = new Map<number, SeasonDetail['matchups']>();
   for (const matchup of pending) {
@@ -78,17 +108,45 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <header className="fade-in-up flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
-            Current season
-          </p>
-          <h1 className="text-glow mt-1 text-3xl font-black uppercase tracking-wide text-slate-100">
+      {/* Hero — Nicol Bolas, Dragon-God looming over the season in progress */}
+      <section className="fade-in-up relative overflow-hidden rounded-2xl border border-white/10 shadow-xl shadow-black/40">
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center opacity-75"
+          style={{ backgroundImage: 'url(/art/hero-bolas.jpg)' }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-r from-base via-base/80 to-base/15"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-gradient-to-t from-base/95 via-base/20 to-base/40"
+        />
+        <div className="relative flex flex-col gap-5 p-6 sm:p-8 lg:max-w-[65%]">
+          <div className="flex items-center gap-3">
+            <p className="kicker">Current season</p>
+            <span className="badge border border-accent/40 bg-accent/10 text-accent">
+              ● Live
+            </span>
+          </div>
+          <h1 className="text-glow font-display text-3xl font-black uppercase leading-tight tracking-wide text-slate-50 sm:text-4xl">
             {season.name}
           </h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <StatChip
+              label="Duelists"
+              value={String(season.participants.length)}
+            />
+            <StatChip label="Matches" value={String(season.matchups.length)} />
+            <StatChip label="Decided" value={String(completed.length)} />
+            {leader && (
+              <StatChip label="Top ELO" value={`${leader.member.name}${leaderNick}`} />
+            )}
+          </div>
+          <SeasonProgress total={season.matchups.length} completed={completed.length} />
         </div>
-        <SeasonProgress season={season} />
-      </header>
+      </section>
 
       {pending.length === 0 ? (
         <p className="card p-6 text-center text-sm text-slate-400">
@@ -99,14 +157,14 @@ export default async function DashboardPage() {
           .sort((a, b) => a[0] - b[0])
           .map(([round, matchups]) => (
             <section key={round} className="space-y-3">
-              <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-slate-300">
+              <h2 className="section-title">
                 Round {round}
                 <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="font-sans text-xs font-semibold normal-case tracking-normal text-slate-500">
                   {matchups.length} {matchups.length === 1 ? 'match' : 'matches'}
                 </span>
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {matchups.map((matchup) => (
                   <MatchupCard
                     key={matchup.id}
@@ -121,14 +179,14 @@ export default async function DashboardPage() {
 
       {completed.length > 0 && (
         <section className="space-y-3">
-          <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-slate-400">
+          <h2 className="section-title text-slate-400">
             Completed
             <span className="h-px flex-1 bg-gradient-to-r from-plum to-transparent" />
-            <span className="text-xs font-semibold text-slate-500">
+            <span className="font-sans text-xs font-semibold normal-case tracking-normal text-slate-500">
               {completed.length} {completed.length === 1 ? 'match' : 'matches'}
             </span>
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[...completed].reverse().map((matchup) => (
               <MatchupCard
                 key={matchup.id}

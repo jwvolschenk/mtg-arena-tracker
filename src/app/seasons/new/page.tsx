@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import PageBanner from '@/components/PageBanner';
 import StartSeasonForm from '@/components/StartSeasonForm';
 import { getActiveSeason, getSeasons } from '@/lib/seasons';
 import { listMembers } from '@/lib/members';
@@ -16,20 +17,15 @@ export default async function NewSeasonPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <header className="fade-in-up">
-        <h1 className="text-glow text-3xl font-black uppercase tracking-wide text-slate-100">
-          Start a season
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">
+      <PageBanner image="/art/hero-ugin.jpg" kicker="A new saga begins" title="Start a Season">
+        <p className="text-sm text-slate-300">
           Pick the duelists — everyone plays everyone exactly once.
         </p>
-      </header>
+      </PageBanner>
 
       {activeSeason ? (
         <div className="card border-amber-400/30 bg-amber-400/5 p-5 text-sm text-amber-200">
-          <p className="font-bold">
-            ⚔️ &ldquo;{activeSeason.name}&rdquo; is still in progress.
-          </p>
+          <p className="font-bold">⚔️ &ldquo;{activeSeason.name}&rdquo; is still in progress.</p>
           <p className="mt-1 text-amber-200/80">
             Only one season can run at a time — record its remaining results on the{' '}
             <Link href="/" className="underline">
