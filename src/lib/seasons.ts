@@ -73,6 +73,26 @@ export async function createSeason(name: string, memberIds: string[]): Promise<S
 }
 
 /**
+ * Marks the season COMPLETED when no PENDING matchups remain. Returns
+ * whether the season was settled by this call.
+ */
+async function settleSeasonIfDone(
+  tx: Prisma.TransactionClient,
+  seasonId: string,
+): Promise<boolean> {
+  const pendingCount = await tx.matchup.count({
+    where: { seasonId, status: 'PENDING' },
+  });
+  if (pendingCount > 0) return false;
+
+  await tx.season.update({
+    where: { id: seasonId },
+    data: { status: 'COMPLETED', completedAt: new Date() },
+  });
+  return true;
+}
+
+/**
  * Records a match result: computes the ELO update with before/after
  * snapshots, updates both members, completes the matchup, and — if it
  * was the last pending matchup — completes the season. All in one
@@ -91,6 +111,9 @@ export async function recordResult(
   return prisma.$transaction(async (tx) => {
     const matchup = await tx.matchup.findUnique({ where: { id: matchupId }, include: { result: true } });
     if (!matchup) throw new ApiError(404, 'Matchup not found');
+    if (matchup.status === 'SKIPPED') {
+      throw new ApiError(409, 'This matchup was skipped — restore it before recording a result');
+    }
     if (matchup.status === 'COMPLETED' || matchup.result) {
       throw new ApiError(409, 'A result has already been recorded for this matchup');
     }
@@ -128,19 +151,62 @@ export async function recordResult(
     await tx.member.update({ where: { id: p2.id }, data: { elo: newRatingB } });
     await tx.matchup.update({ where: { id: matchup.id }, data: { status: 'COMPLETED' } });
 
-    let seasonCompleted = false;
-    const pendingCount = await tx.matchup.count({
-      where: { seasonId: matchup.seasonId, status: 'PENDING' },
-    });
-    if (pendingCount === 0) {
-      await tx.season.update({
-        where: { id: matchup.seasonId },
-        data: { status: 'COMPLETED', completedAt: new Date() },
-      });
-      seasonCompleted = true;
+    const seasonCompleted = await settleSeasonIfDone(tx, matchup.seasonId);
+    return { matchupId: matchup.id, seasonCompleted };
+  });
+}
+
+/**
+ * Skips a matchup that will not be played (e.g. a duelist had to drop
+ * out). No result is recorded and both players' ELO is left exactly as
+ * it is — the fixture is simply void, so neither player gains or loses
+ * anything. If it was the last pending matchup, the season completes.
+ */
+export async function skipMatchup(
+  matchupId: string,
+): Promise<{ matchupId: string; seasonCompleted: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const matchup = await tx.matchup.findUnique({ where: { id: matchupId }, include: { result: true } });
+    if (!matchup) throw new ApiError(404, 'Matchup not found');
+    if (matchup.status === 'SKIPPED') {
+      throw new ApiError(409, 'This matchup is already skipped');
+    }
+    if (matchup.status === 'COMPLETED' || matchup.result) {
+      throw new ApiError(409, 'A result has already been recorded for this matchup');
     }
 
+    await tx.matchup.update({ where: { id: matchup.id }, data: { status: 'SKIPPED' } });
+
+    const seasonCompleted = await settleSeasonIfDone(tx, matchup.seasonId);
     return { matchupId: matchup.id, seasonCompleted };
+  });
+}
+
+/**
+ * Restores a skipped matchup to PENDING so it can be played after all.
+ * If the season had already completed, it is reopened.
+ */
+export async function unskipMatchup(
+  matchupId: string,
+): Promise<{ matchupId: string; seasonReopened: boolean }> {
+  return prisma.$transaction(async (tx) => {
+    const matchup = await tx.matchup.findUnique({ where: { id: matchupId }, include: { season: true } });
+    if (!matchup) throw new ApiError(404, 'Matchup not found');
+    if (matchup.status !== 'SKIPPED') {
+      throw new ApiError(409, 'Only skipped matchups can be restored');
+    }
+
+    await tx.matchup.update({ where: { id: matchup.id }, data: { status: 'PENDING' } });
+
+    let seasonReopened = false;
+    if (matchup.season.status === 'COMPLETED') {
+      await tx.season.update({
+        where: { id: matchup.seasonId },
+        data: { status: 'ACTIVE', completedAt: null },
+      });
+      seasonReopened = true;
+    }
+    return { matchupId: matchup.id, seasonReopened };
   });
 }
 

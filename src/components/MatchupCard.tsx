@@ -25,7 +25,7 @@ export interface MatchupResult {
 export interface MatchupData {
   id: string;
   round: number;
-  status: 'PENDING' | 'COMPLETED';
+  status: 'PENDING' | 'COMPLETED' | 'SKIPPED';
   player1: MatchupPlayer;
   player2: MatchupPlayer;
   result: MatchupResult | null;
@@ -54,15 +54,16 @@ export default function MatchupCard({
 
   const { player1, player2, result } = matchup;
   const completed = matchup.status === 'COMPLETED' && result !== null;
+  const skipped = matchup.status === 'SKIPPED';
 
-  async function recordResult(payload: { winnerId?: string; isDraw?: boolean }) {
+  async function post(path: string, payload?: { winnerId?: string; isDraw?: boolean }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/matchups/${matchup.id}/result`, {
+      const res = await fetch(`/api/matchups/${matchup.id}/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: payload === undefined ? undefined : JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -83,7 +84,7 @@ export default function MatchupCard({
   return (
     <article
       className={`card fade-in-up p-4 transition ${
-        completed
+        completed || skipped
           ? 'opacity-70 hover:opacity-100'
           : 'hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-glow'
       }`}
@@ -120,6 +121,11 @@ export default function MatchupCard({
           {completed && (
             <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               {result!.isDraw ? 'Draw' : 'Final'}
+            </p>
+          )}
+          {skipped && (
+            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+              Void
             </p>
           )}
         </div>
@@ -163,13 +169,35 @@ export default function MatchupCard({
             </>
           )}
         </p>
+      ) : skipped ? (
+        <>
+          <p className="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-slate-400">
+            <span aria-hidden>🚫</span>
+            Match skipped — not played, no result, ELO unchanged
+          </p>
+          <div className="mt-2 flex justify-center">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => post('unskip')}
+              className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 transition hover:text-accent disabled:opacity-50"
+            >
+              ↩ Restore match
+            </button>
+          </div>
+          {error && (
+            <p role="alert" className="mt-2 text-center text-xs font-semibold text-rose-400">
+              {error}
+            </p>
+          )}
+        </>
       ) : (
         <>
           <div className="mt-3 grid grid-cols-3 gap-2">
             <button
               type="button"
               disabled={busy}
-              onClick={() => recordResult({ winnerId: player1.id })}
+              onClick={() => post('result', { winnerId: player1.id })}
               className="btn-ghost !px-2 !py-1.5 !text-xs"
             >
               {player1.name} wins
@@ -177,7 +205,7 @@ export default function MatchupCard({
             <button
               type="button"
               disabled={busy}
-              onClick={() => recordResult({ isDraw: true })}
+              onClick={() => post('result', { isDraw: true })}
               className="btn-ghost !px-2 !py-1.5 !text-xs"
             >
               Draw
@@ -185,10 +213,21 @@ export default function MatchupCard({
             <button
               type="button"
               disabled={busy}
-              onClick={() => recordResult({ winnerId: player2.id })}
+              onClick={() => post('result', { winnerId: player2.id })}
               className="btn-ghost !px-2 !py-1.5 !text-xs"
             >
               {player2.name} wins
+            </button>
+          </div>
+          <div className="mt-2 flex justify-center">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => post('skip')}
+              title="Skip if this match cannot be played — no result is recorded and neither player's ELO changes"
+              className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 transition hover:text-rose-300 disabled:opacity-50"
+            >
+              Skip match
             </button>
           </div>
           {error && (
