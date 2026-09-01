@@ -12,6 +12,7 @@ const cinzel = Cinzel({ subsets: ['latin'], variable: '--font-cinzel' });
 export const metadata: Metadata = {
   title: 'MTG Arena Tracker',
   description: 'Friday night Magic — rosters, round-robins and ELO leaderboards.',
+  icons: { icon: '/favicon.svg' },
 };
 
 /** Five-mana gradient hairline — white, blue, black, red, green. */
