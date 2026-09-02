@@ -62,7 +62,7 @@ export default async function LeaderboardPage() {
               >
                 {index < 3 ? MEDALS[index] : index + 1}
               </span>
-              <Avatar name={entry.name} avatarPath={entry.avatarPath} size={44} />
+              <Avatar name={entry.name} avatarPath={entry.avatarPath} colors={entry.colors} size={44} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-bold text-slate-100">
                   {entry.name}

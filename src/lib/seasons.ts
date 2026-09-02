@@ -215,6 +215,7 @@ export interface SeasonStanding {
   name: string;
   nickname: string | null;
   avatarPath: string | null;
+  colors: string | null;
   wins: number;
   losses: number;
   draws: number;
@@ -230,6 +231,7 @@ export function computeStandings(season: SeasonDetail): SeasonStanding[] {
       name: participant.member.name,
       nickname: participant.member.nickname,
       avatarPath: participant.member.avatarPath,
+      colors: participant.member.colors,
       wins: 0,
       losses: 0,
       draws: 0,

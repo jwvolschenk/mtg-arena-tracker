@@ -5,6 +5,7 @@ export interface LeaderboardEntry {
   name: string;
   nickname: string | null;
   avatarPath: string | null;
+  colors: string | null;
   elo: number;
   wins: number;
   losses: number;
@@ -64,6 +65,7 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
       name: member.name,
       nickname: member.nickname,
       avatarPath: member.avatarPath,
+      colors: member.colors,
       elo: member.elo,
       ...record,
     };

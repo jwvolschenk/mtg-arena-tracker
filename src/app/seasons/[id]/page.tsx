@@ -86,7 +86,7 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
                   </td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-2 font-bold text-slate-100">
-                      <Avatar name={row.name} avatarPath={row.avatarPath} size={28} />
+                      <Avatar name={row.name} avatarPath={row.avatarPath} colors={row.colors} size={28} />
                       {row.name}
                       {row.nickname && (
                         <span className="text-xs font-normal text-slate-400">

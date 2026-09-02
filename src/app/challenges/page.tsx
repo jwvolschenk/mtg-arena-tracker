@@ -28,7 +28,7 @@ function ChallengeRow({ challenge }: { challenge: ChallengeEntry }) {
   return (
     <li className="flex items-center justify-between gap-2 rounded-xl border border-white/5 bg-black/20 px-3 py-2.5 sm:gap-3 sm:px-4">
       <div className="flex min-w-0 items-center gap-2 sm:gap-2.5">
-        <Avatar name={player1.name} avatarPath={player1.avatarPath} size={32} />
+        <Avatar name={player1.name} avatarPath={player1.avatarPath} colors={player1.colors} size={32} />
         <div className="min-w-0">
           <p className="truncate text-xs font-bold text-slate-100">{player1.name}</p>
           <p className="text-[11px] font-semibold">
@@ -52,7 +52,7 @@ function ChallengeRow({ challenge }: { challenge: ChallengeEntry }) {
       </div>
 
       <div className="flex min-w-0 flex-row-reverse items-center gap-2 text-right sm:gap-2.5">
-        <Avatar name={player2.name} avatarPath={player2.avatarPath} size={32} />
+        <Avatar name={player2.name} avatarPath={player2.avatarPath} colors={player2.colors} size={32} />
         <div className="min-w-0">
           <p className="truncate text-xs font-bold text-slate-100">{player2.name}</p>
           <p className="text-[11px] font-semibold">

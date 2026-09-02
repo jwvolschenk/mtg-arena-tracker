@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiError, errorResponse } from '@/lib/api';
+import { canonicalizeColors } from '@/lib/colors';
 import { updateMember } from '@/lib/members';
-import { firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
+import { colorsSchema, firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,13 +13,22 @@ export async function PATCH(
   try {
     const form = await req.formData();
 
-    const data: { name?: string; nickname?: string | null; active?: boolean; avatar?: File | null } = {};
+    const data: { name?: string; nickname?: string | null; colors?: string | null; active?: boolean; avatar?: File | null } = {};
 
     const name = form.get('name');
     if (name !== null) {
       const parsed = memberNameSchema.safeParse(name);
       if (!parsed.success) throw new ApiError(400, firstIssueMessage(parsed.error));
       data.name = parsed.data;
+    }
+
+    // The edit form sends a colors_set marker so "every box unticked"
+    // (clear the flair) is distinguishable from "field not in this form".
+    if (form.get('colors_set') !== null) {
+      const raw = form.getAll('colors').filter((v): v is string => typeof v === 'string');
+      const parsed = colorsSchema.safeParse(raw);
+      if (!parsed.success) throw new ApiError(400, firstIssueMessage(parsed.error));
+      data.colors = canonicalizeColors(parsed.data);
     }
 
     const nickname = form.get('nickname');

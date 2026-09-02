@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MTG_COLOR_LETTERS } from './colors';
 
 export const memberNameSchema = z
   .string()
@@ -12,6 +13,10 @@ export const nicknameSchema = z
   .max(40, 'Nickname must be 40 characters or fewer')
   .optional()
   .transform((v: string | undefined) => (v === '' ? null : v));
+
+export const colorsSchema = z
+  .array(z.enum(MTG_COLOR_LETTERS))
+  .max(MTG_COLOR_LETTERS.length, 'Pick at most one of each color');
 
 export const createSeasonSchema = z.object({
   name: z

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import ColorPicker from './ColorPicker';
 
 export default function AddMemberForm() {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function AddMemberForm() {
       form.set('name', name);
       if (nickname) form.set('nickname', nickname);
       if (avatar) form.set('avatar', avatar);
+      // ColorPicker is uncontrolled — read its checked boxes straight from the DOM.
+      event.currentTarget
+        .querySelectorAll<HTMLInputElement>('input[name="colors"]:checked')
+        .forEach((input) => form.append('colors', input.value));
 
       const res = await fetch('/api/members', { method: 'POST', body: form });
       if (!res.ok) {
@@ -72,6 +77,12 @@ export default function AddMemberForm() {
         <button type="submit" disabled={busy || name.trim().length === 0} className="btn-primary">
           {busy ? 'Adding…' : 'Add member'}
         </button>
+      </div>
+      <div className="mt-2 flex items-center gap-2.5">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          Deck colors
+        </span>
+        <ColorPicker />
       </div>
       {error && (
         <p role="alert" className="mt-2 text-xs font-semibold text-rose-400">

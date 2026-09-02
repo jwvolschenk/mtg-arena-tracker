@@ -41,6 +41,7 @@ export default async function NewSeasonPage() {
             name: m.name,
             nickname: m.nickname,
             avatarPath: m.avatarPath,
+            colors: m.colors,
             elo: m.elo,
           }))}
           defaultName={`Friday Night Magic ${seasons.length + 1}`}

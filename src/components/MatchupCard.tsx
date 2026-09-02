@@ -9,6 +9,7 @@ export interface MatchupPlayer {
   name: string;
   nickname?: string | null;
   avatarPath: string | null;
+  colors: string | null;
   elo: number;
 }
 
@@ -94,6 +95,7 @@ export default function MatchupCard({
           <Avatar
             name={player1.name}
             avatarPath={player1.avatarPath}
+            colors={player1.colors}
             size={56}
             sizeClassName="h-10 w-10 sm:h-14 sm:w-14"
             dimmed={completed}
@@ -134,6 +136,7 @@ export default function MatchupCard({
           <Avatar
             name={player2.name}
             avatarPath={player2.avatarPath}
+            colors={player2.colors}
             size={56}
             sizeClassName="h-10 w-10 sm:h-14 sm:w-14"
             dimmed={completed}

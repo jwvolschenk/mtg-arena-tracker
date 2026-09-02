@@ -13,10 +13,17 @@ export async function listMembers(filter: MemberFilter = 'all'): Promise<Member[
   });
 }
 
-export async function createMember(name: string, avatar: File | null, nickname?: string | null): Promise<Member> {
+export async function createMember(
+  name: string,
+  avatar: File | null,
+  nickname?: string | null,
+  colors?: string | null,
+): Promise<Member> {
   const avatarPath = avatar ? await saveAvatarFile(avatar) : null;
   try {
-    return await prisma.member.create({ data: { name, avatarPath, nickname: nickname ?? null } });
+    return await prisma.member.create({
+      data: { name, avatarPath, nickname: nickname ?? null, colors: colors ?? null },
+    });
   } catch (err) {
     throw translatePrismaError(err, `A member named "${name}" already exists`);
   }
@@ -24,7 +31,13 @@ export async function createMember(name: string, avatar: File | null, nickname?:
 
 export async function updateMember(
   id: string,
-  data: { name?: string; nickname?: string | null; active?: boolean; avatar?: File | null },
+  data: {
+    name?: string;
+    nickname?: string | null;
+    colors?: string | null;
+    active?: boolean;
+    avatar?: File | null;
+  },
 ): Promise<Member> {
   const existing = await prisma.member.findUnique({ where: { id } });
   if (!existing) throw new ApiError(404, 'Member not found');
@@ -32,6 +45,7 @@ export async function updateMember(
   const update: Prisma.MemberUpdateInput = {};
   if (data.name !== undefined) update.name = data.name;
   if (data.nickname !== undefined) update.nickname = data.nickname;
+  if (data.colors !== undefined) update.colors = data.colors;
   if (data.active !== undefined) update.active = data.active;
   if (data.avatar) update.avatarPath = await saveAvatarFile(data.avatar);
 

@@ -12,6 +12,7 @@ model Member {
   name       String   @unique
   nickname   String?
   avatarPath String?
+  colors     String?
   elo        Int      @default(1200)
   active     Boolean  @default(true)
   createdAt  DateTime @default(now())

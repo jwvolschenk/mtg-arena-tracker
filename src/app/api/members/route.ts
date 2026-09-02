@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiError, errorResponse } from '@/lib/api';
+import { canonicalizeColors } from '@/lib/colors';
 import { createMember, listMembers, type MemberFilter } from '@/lib/members';
-import { firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
+import { colorsSchema, firstIssueMessage, memberNameSchema, nicknameSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +31,17 @@ export async function POST(req: NextRequest) {
     const nicknameParsed = nicknameSchema.safeParse(nicknameRaw ?? undefined);
     const nickname = nicknameParsed.success ? nicknameParsed.data : null;
 
-    const member = await createMember(parsed.data, avatarFile, nickname);
+    const member = await createMember(parsed.data, avatarFile, nickname, parseColors(form));
     return NextResponse.json({ member }, { status: 201 });
   } catch (err) {
     return errorResponse(err);
   }
+}
+
+/** Reads repeat `colors` entries from the form and canonicalises them (null = none ticked). */
+function parseColors(form: FormData): string | null {
+  const raw = form.getAll('colors').filter((v): v is string => typeof v === 'string');
+  const parsed = colorsSchema.safeParse(raw);
+  if (!parsed.success) throw new ApiError(400, firstIssueMessage(parsed.error));
+  return canonicalizeColors(parsed.data);
 }

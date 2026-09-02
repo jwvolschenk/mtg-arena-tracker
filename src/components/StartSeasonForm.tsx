@@ -9,6 +9,7 @@ interface MemberOption {
   name: string;
   nickname: string | null;
   avatarPath: string | null;
+  colors: string | null;
   elo: number;
 }
 
@@ -116,7 +117,7 @@ export default function StartSeasonForm({
                     onChange={() => toggle(member.id)}
                     className="h-4 w-4 accent-[#00C0F3]"
                   />
-                  <Avatar name={member.name} avatarPath={member.avatarPath} size={32} />
+                  <Avatar name={member.name} avatarPath={member.avatarPath} colors={member.colors} size={32} />
                   <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-100">
                     {member.name}
                     {member.nickname && (
