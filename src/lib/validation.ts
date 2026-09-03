@@ -54,6 +54,18 @@ export const challengeSchema = z
     message: 'Provide either winnerId or isDraw: true',
   });
 
+export const deckNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Deck name is required')
+  .max(60, 'Deck name must be 60 characters or fewer');
+
+export const deckListSchema = z
+  .string()
+  .trim()
+  .min(1, 'Paste the deck export from Arena')
+  .max(30000, 'Deck list is too long');
+
 /** Returns the first zod issue's message, for surfacing in API errors. */
 export function firstIssueMessage(error: z.ZodError): string {
   return error.issues[0]?.message ?? 'Invalid request';

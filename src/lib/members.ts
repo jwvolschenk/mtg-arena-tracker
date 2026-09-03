@@ -5,11 +5,18 @@ import { saveAvatarFile } from './uploads';
 
 export type MemberFilter = 'all' | 'active' | 'archived';
 
-export async function listMembers(filter: MemberFilter = 'all'): Promise<Member[]> {
+export type MemberWithDeckCount = Member & { _count: { decks: number } };
+
+export async function getMember(id: string): Promise<Member | null> {
+  return prisma.member.findUnique({ where: { id } });
+}
+
+export async function listMembers(filter: MemberFilter = 'all'): Promise<MemberWithDeckCount[]> {
   const where = filter === 'all' ? {} : { active: filter === 'active' };
   return prisma.member.findMany({
     where,
     orderBy: [{ active: 'desc' }, { name: 'asc' }],
+    include: { _count: { select: { decks: true } } },
   });
 }
 

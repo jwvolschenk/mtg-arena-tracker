@@ -25,6 +25,48 @@ model Member {
   challengesAsPlayer1 ChallengeMatch[] @relation("challengePlayer1")
   challengesAsPlayer2 ChallengeMatch[] @relation("challengePlayer2")
   challengesWon       ChallengeMatch[] @relation("challengeWinner")
+  decks               Deck[]
+}
+
+/**
+ * A deck imported from an MTG Arena clipboard export, attached to a member's
+ * roster profile. Card details are denormalized from Scryfall at import time
+ * (name/mana cost/type/colors/rarity) together with downloaded artwork.
+ */
+model Deck {
+  id        String   @id @default(cuid())
+  memberId  String
+  name      String
+  colors    String?
+  createdAt DateTime @default(now())
+
+  member Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  cards  DeckCard[]
+
+  @@index([memberId])
+}
+
+/** One entry (card + quantity) of a deck, per board (main/sideboard/commander). */
+model DeckCard {
+  id              String  @id @default(cuid())
+  deckId          String
+  board           String  @default("main")
+  position        Int
+  quantity        Int
+  name            String
+  setCode         String
+  collectorNumber String
+  scryfallId      String?
+  manaCost        String?
+  typeLine        String?
+  colors          String?
+  cmc             Int?
+  rarity          String?
+  artPath         String?
+
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId])
 }
 
 model Season {

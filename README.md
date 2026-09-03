@@ -7,6 +7,17 @@ anyone with the link can act as any member.
 
 Design spec: [`docs/superpowers/specs/2026-09-01-mtg-arena-tracker-design.md`](docs/superpowers/specs/2026-09-01-mtg-arena-tracker-design.md)
 
+## Decks on roster profiles
+
+Each duelist's profile (`Roster → Decks`) hosts their decks. To add one,
+open the deck in MTG Arena, click **Export**, and paste the clipboard into
+the import form. The list is parsed (`4 Card Name (SET) 123` lines,
+`Deck`/`Commander`/`Sideboard`/`Companion` sections), card details and
+artwork are fetched from [Scryfall](https://scryfall.com)'s API, and the
+art is stored locally in the `uploads` volume. Cards Scryfall can't match
+are kept as plain entries with a warning; decks can be deleted from their
+header.
+
 ## Run it (Docker)
 
 ```bash
@@ -53,5 +64,6 @@ The banner art in `public/art/` was sourced from
 [Scryfall](https://scryfall.com) and is © Wizards of the Coast LLC. It is
 used under the [Wizards of the Coast Fan Content Policy](https://company.wizards.com/en/legal/fancontentpolicy)
 — this is an unofficial, non-commercial fan tool and is not affiliated
-with or endorsed by Wizards of the Coast. Replace the files in
+with or endorsed by Wizards of the Coast. The same applies to the deck
+card artwork downloaded from Scryfall at import time. Replace the files in
 `public/art/` if that ever stops fitting your use case.

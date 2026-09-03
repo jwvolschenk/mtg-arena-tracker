@@ -30,7 +30,10 @@ export default async function RosterPage() {
       ) : (
         <ul className="space-y-2">
           {active.map((member) => (
-            <MemberRow key={member.id} member={member as MemberInfo} />
+            <MemberRow
+              key={member.id}
+              member={{ ...member, deckCount: member._count.decks } as MemberInfo}
+            />
           ))}
         </ul>
       )}
@@ -46,7 +49,10 @@ export default async function RosterPage() {
           </p>
           <ul className="space-y-2">
             {archived.map((member) => (
-              <MemberRow key={member.id} member={member as MemberInfo} />
+              <MemberRow
+                key={member.id}
+                member={{ ...member, deckCount: member._count.decks } as MemberInfo}
+              />
             ))}
           </ul>
         </section>

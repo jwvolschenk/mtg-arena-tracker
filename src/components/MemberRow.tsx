@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
@@ -13,6 +14,7 @@ export interface MemberInfo {
   colors: string | null;
   elo: number;
   active: boolean;
+  deckCount?: number;
 }
 
 export default function MemberRow({ member }: { member: MemberInfo }) {
@@ -134,10 +136,20 @@ export default function MemberRow({ member }: { member: MemberInfo }) {
           </p>
           <p className="text-xs text-slate-500">
             <span className={member.active ? 'text-slate-300' : ''}>{member.elo}</span> ELO
+            {(member.deckCount ?? 0) > 0 && (
+              <span className="text-slate-500"> · {member.deckCount === 1 ? '1 deck' : `${member.deckCount} decks`}</span>
+            )}
           </p>
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
+        <Link
+          href={`/roster/${member.id}`}
+          className="btn-ghost !px-3 !py-1.5 !text-xs"
+          title={`${member.name}'s decks`}
+        >
+          Decks{(member.deckCount ?? 0) > 0 ? ` · ${member.deckCount}` : ''}
+        </Link>
         <button type="button" className="btn-ghost !px-3 !py-1.5 !text-xs" onClick={startEdit}>
           Edit
         </button>
