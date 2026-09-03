@@ -3,7 +3,8 @@ import ManaSymbol from './ManaSymbol';
 
 const HUES = [190, 210, 262, 330, 45, 160, 15];
 
-function hueFor(name: string): number {
+/** Stable hue for a duelist — shared with the ELO chart so lines match avatars. */
+export function hueFor(name: string): number {
   let hash = 0;
   for (const char of name) hash += char.charCodeAt(0);
   return HUES[hash % HUES.length];

@@ -7,6 +7,7 @@ const LINKS = [
   { href: '/', label: 'Arena', glyph: '⚔' },
   { href: '/my-matchups', label: 'My Matches', glyph: '✦' },
   { href: '/challenges', label: 'Challenges', glyph: '⚡' },
+  { href: '/elo', label: 'ELO', glyph: '↗' },
   { href: '/roster', label: 'Roster', glyph: '⚜' },
   { href: '/seasons', label: 'Seasons', glyph: '⧗' },
   { href: '/leaderboard', label: 'Leaderboard', glyph: '🏆' },
