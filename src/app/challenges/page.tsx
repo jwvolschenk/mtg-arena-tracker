@@ -46,8 +46,7 @@ function ChallengeRow({ challenge }: { challenge: ChallengeEntry }) {
           )}
         </p>
         <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-          {challenge.playedAt.toLocaleDateString()} ·{' '}
-          {challenge.playedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {challenge.playedAt.toLocaleDateString()}
         </p>
       </div>
 
