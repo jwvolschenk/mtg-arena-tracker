@@ -118,10 +118,14 @@ export default function StartSeasonForm({
                     className="h-4 w-4 accent-[#00C0F3]"
                   />
                   <Avatar name={member.name} avatarPath={member.avatarPath} colors={member.colors} size={32} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-100">
-                    {member.name}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold text-slate-100">
+                      {member.name}
+                    </span>
                     {member.nickname && (
-                      <span className="ml-1 text-xs font-normal text-slate-400">“{member.nickname}”</span>
+                      <span className="block truncate text-xs font-normal leading-tight text-slate-400">
+                        “{member.nickname}”
+                      </span>
                     )}
                   </span>
                   <span className="text-xs text-slate-400">{member.elo}</span>

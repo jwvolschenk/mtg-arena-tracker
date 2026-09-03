@@ -30,10 +30,13 @@ function SeasonProgress({ total, completed }: { total: number; completed: number
   );
 }
 
-function StatChip({ label, value }: { label: string; value: string }) {
+function StatChip({ label, value, sub }: { label: string; value: string; sub?: string | null }) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/30 px-3.5 py-2 backdrop-blur-sm">
       <p className="font-display text-lg font-black leading-tight text-slate-100">{value}</p>
+      {sub && (
+        <p className="text-[11px] font-normal leading-tight text-slate-400">“{sub}”</p>
+      )}
       <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">{label}</p>
     </div>
   );
@@ -97,7 +100,6 @@ export default async function DashboardPage() {
   const pending = season.matchups.filter((m) => m.status === 'PENDING');
   const completed = season.matchups.filter((m) => m.status === 'COMPLETED');
   const leader = [...season.participants].sort((a, b) => b.member.elo - a.member.elo)[0];
-  const leaderNick = leader?.member.nickname ? ` “${leader.member.nickname}”` : '';
 
   const rounds = new Map<number, SeasonDetail['matchups']>();
   for (const matchup of pending) {
@@ -133,7 +135,7 @@ export default async function DashboardPage() {
           <h1 className="text-glow font-display text-3xl font-black uppercase leading-tight tracking-wide text-slate-50 sm:text-4xl">
             {season.name}
           </h1>
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-stretch gap-2.5">
             <StatChip
               label="Duelists"
               value={String(season.participants.length)}
@@ -141,7 +143,7 @@ export default async function DashboardPage() {
             <StatChip label="Matches" value={String(season.matchups.length)} />
             <StatChip label="Decided" value={String(completed.length)} />
             {leader && (
-              <StatChip label="Top ELO" value={`${leader.member.name}${leaderNick}`} />
+              <StatChip label="Top ELO" value={leader.member.name} sub={leader.member.nickname} />
             )}
           </div>
           <SeasonProgress total={season.matchups.length} completed={completed.length} />

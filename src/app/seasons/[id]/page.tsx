@@ -87,12 +87,14 @@ export default async function SeasonDetailPage({ params }: { params: { id: strin
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-2 font-bold text-slate-100">
                       <Avatar name={row.name} avatarPath={row.avatarPath} colors={row.colors} size={28} />
-                      {row.name}
-                      {row.nickname && (
-                        <span className="text-xs font-normal text-slate-400">
-                          “{row.nickname}”
-                        </span>
-                      )}
+                      <span className="min-w-0">
+                        <span className="block truncate">{row.name}</span>
+                        {row.nickname && (
+                          <span className="block truncate text-xs font-normal leading-tight text-slate-400">
+                            “{row.nickname}”
+                          </span>
+                        )}
+                      </span>
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center text-emerald-400">{row.wins}</td>

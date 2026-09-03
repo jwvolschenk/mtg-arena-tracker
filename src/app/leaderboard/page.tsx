@@ -66,17 +66,17 @@ export default async function LeaderboardPage() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-base font-bold text-slate-100">
                   {entry.name}
-                  {entry.nickname && (
-                    <span className="ml-1.5 text-sm font-normal text-slate-400">
-                      “{entry.nickname}”
-                    </span>
-                  )}
                   {index === 0 && (
                     <span className="ml-2 align-middle text-sm" title="Reigning champion">
                       👑
                     </span>
                   )}
                 </p>
+                {entry.nickname && (
+                  <p className="truncate text-sm font-normal leading-tight text-slate-400">
+                    “{entry.nickname}”
+                  </p>
+                )}
                 <p className="text-xs text-slate-500">
                   <span className="text-emerald-400">{entry.wins}W</span>{' '}
                   <span className="text-rose-400">{entry.losses}L</span>{' '}

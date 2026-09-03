@@ -127,13 +127,13 @@ export default function MemberRow({ member }: { member: MemberInfo }) {
         <div className="min-w-0">
           <p className={`truncate text-sm font-bold ${member.active ? 'text-slate-100' : 'text-slate-400'}`}>
             {member.name}
-            {member.nickname && (
-              <span className="ml-1.5 text-xs font-normal text-slate-400">“{member.nickname}”</span>
-            )}
             {!member.active && (
               <span className="badge ml-2 bg-plum/40 text-slate-300">Archived</span>
             )}
           </p>
+          {member.nickname && (
+            <p className="truncate text-xs font-normal leading-tight text-slate-400">“{member.nickname}”</p>
+          )}
           <p className="text-xs text-slate-500">
             <span className={member.active ? 'text-slate-300' : ''}>{member.elo}</span> ELO
             {(member.deckCount ?? 0) > 0 && (

@@ -80,7 +80,11 @@ export default function MatchupCard({
 
   const you = (id: string) => currentMemberId === id;
   const nick = (p: MatchupPlayer) =>
-    p.nickname ? <span className="ml-1 font-normal text-slate-500">“{p.nickname}”</span> : null;
+    p.nickname ? (
+      <p className="truncate text-[11px] font-normal leading-tight text-slate-500 sm:text-xs">
+        “{p.nickname}”
+      </p>
+    ) : null;
 
   return (
     <article
@@ -103,9 +107,9 @@ export default function MatchupCard({
           <div className="min-w-0">
             <p className="truncate text-xs font-bold text-slate-100 sm:text-sm">
               {player1.name}
-              {nick(player1)}
               {you(player1.id) && <span className="ml-1 text-xs text-accent">(you)</span>}
             </p>
+            {nick(player1)}
             <p className="text-xs text-slate-400">{player1.elo} ELO</p>
           </div>
         </div>
@@ -144,9 +148,9 @@ export default function MatchupCard({
           <div className="min-w-0">
             <p className="truncate text-xs font-bold text-slate-100 sm:text-sm">
               {player2.name}
-              {nick(player2)}
               {you(player2.id) && <span className="ml-1 text-xs text-accent">(you)</span>}
             </p>
+            {nick(player2)}
             <p className="text-xs text-slate-400">{player2.elo} ELO</p>
           </div>
         </div>
