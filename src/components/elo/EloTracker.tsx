@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Avatar, { hueFor } from '@/components/Avatar';
-import type { EloEvent, EloHistory, EloPerson } from '@/lib/eloHistory';
+import { weekStartsBetween, weeklySamples, type EloEvent, type EloHistory, type EloPerson } from '@/lib/eloHistory';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -90,10 +90,12 @@ interface Frame {
   yDomain: [number, number];
   yTicks: number[];
   xTicks: number[];
+  /** Monday-anchored weekly grid (global chart) vs adaptive date ticks. */
+  weekly: boolean;
 }
 
 /** Shared axes math — x is time, y is ELO; both padded away from the edges. */
-function buildFrame(allPoints: PlotPoint[]): Frame {
+function buildFrame(allPoints: PlotPoint[], weekly = false): Frame {
   let minDate = Infinity;
   let maxDate = -Infinity;
   let minElo = Infinity;
@@ -118,10 +120,22 @@ function buildFrame(allPoints: PlotPoint[]): Frame {
     maxDate = mid + DAY_MS / 2;
   }
   const { lo, hi, ticks } = niceScale(minElo - 15, maxElo + 15);
-  const span = maxDate - minDate;
-  const tickCount = span < 3 * DAY_MS ? 3 : span < 45 * DAY_MS ? 4 : 5;
-  const xTicks = Array.from({ length: tickCount }, (_, i) => minDate + (span * i) / (tickCount - 1));
-  return { xDomain: [minDate, maxDate], yDomain: [lo, hi], yTicks: ticks, xTicks };
+
+  let xTicks: number[];
+  if (weekly) {
+    // One gridline per week, thinned so at most ~8 labels render.
+    const mondays = weekStartsBetween(minDate, maxDate);
+    const step = Math.max(1, Math.ceil(mondays.length / 8));
+    xTicks = mondays.filter((_, i) => i % step === 0);
+    if (xTicks[xTicks.length - 1] !== mondays[mondays.length - 1]) {
+      xTicks.push(mondays[mondays.length - 1]);
+    }
+  } else {
+    const span = maxDate - minDate;
+    const tickCount = span < 3 * DAY_MS ? 3 : span < 45 * DAY_MS ? 4 : 5;
+    xTicks = Array.from({ length: tickCount }, (_, i) => minDate + (span * i) / (tickCount - 1));
+  }
+  return { xDomain: [minDate, maxDate], yDomain: [lo, hi], yTicks: ticks, xTicks, weekly };
 }
 
 function xAt(date: number, frame: Frame): number {
@@ -157,6 +171,17 @@ function ChartFrame({ frame, children }: { frame: Frame; children: React.ReactNo
       className="absolute inset-0 h-full w-full"
       role="presentation"
     >
+      {frame.weekly &&
+        frame.xTicks.map((tick, i) => (
+          <line
+            key={`w${i}`}
+            x1={xAt(tick, frame)}
+            x2={xAt(tick, frame)}
+            y1={VIEW.pad.t}
+            y2={VIEW.h - VIEW.pad.b}
+            stroke="rgba(255, 255, 255, 0.05)"
+          />
+        ))}
       {frame.yTicks.map((tick) => {
         const isBaseline = tick === 1200 && hasBaseline;
         return (
@@ -202,23 +227,51 @@ function ChartFrame({ frame, children }: { frame: Frame; children: React.ReactNo
 }
 
 /* ------------------------------------------------------------------ */
-/* Overview: every duelist's ELO trail on one canvas                   */
+/* Overview: everyone's weekly ELO standings on one canvas             */
 /* ------------------------------------------------------------------ */
 
 function OverviewChart({
   histories,
-  selectedId,
   hoveredId,
   onSelect,
   onHover,
 }: {
   histories: EloHistory[];
-  selectedId: string | null;
   hoveredId: string | null;
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
 }) {
-  const frame = useMemo(() => buildFrame(histories.flatMap(pointsOf)), [histories]);
+  const frame = useMemo(() => buildFrame(histories.flatMap(pointsOf), true), [histories]);
+  const [minDate, maxDate] = frame.xDomain;
+  const samplesOf = (h: EloHistory) => weeklySamples(h, minDate, maxDate);
+
+  // Endpoint avatars can collide when duelists share a rating and an end date —
+  // nudge vertically-overlapping ones apart so every face stays clickable.
+  const endpoints = useMemo(() => {
+    const items = histories.map((h) => {
+      const pts = samplesOf(h);
+      const { left, top } = pctOf(pts[pts.length - 1], frame);
+      return { id: h.member.id, left, top };
+    });
+    const GAP = 7; // % of chart height ≈ one avatar
+    const CLUSTER_W = 5; // % of chart width ≈ one avatar
+    const sorted = [...items].sort((a, b) => a.left - b.left || a.top - b.top);
+    const adjusted = new Map<string, number>();
+    let clusterRight = -Infinity;
+    let floorTop = -Infinity;
+    for (const it of sorted) {
+      if (it.left > clusterRight) {
+        clusterRight = it.left + CLUSTER_W;
+        floorTop = it.top;
+      } else {
+        floorTop = Math.max(it.top, floorTop + GAP);
+        clusterRight = Math.max(clusterRight, it.left + CLUSTER_W);
+      }
+      adjusted.set(it.id, floorTop);
+    }
+    return items.map((it) => ({ ...it, top: adjusted.get(it.id)! }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- samplesOf derives from frame/histories
+  }, [histories, frame]);
 
   return (
     <div className="overflow-x-auto">
@@ -226,9 +279,8 @@ function OverviewChart({
         <ChartFrame frame={frame}>
           {histories.map((h) => {
             const hue = hueFor(h.member.name);
-            const emphasized = h.member.id === selectedId || h.member.id === hoveredId;
-            const dimmed = selectedId !== null && h.member.id !== selectedId;
-            const d = pathFor(pointsOf(h), frame);
+            const emphasized = h.member.id === hoveredId;
+            const d = pathFor(samplesOf(h), frame);
             return (
               <g key={h.member.id}>
                 <path
@@ -239,9 +291,8 @@ function OverviewChart({
                   style={{
                     stroke: lineColor(h.member.name),
                     strokeWidth: emphasized ? 3.5 : 2.25,
-                    opacity: dimmed ? 0.25 : 1,
                     filter: `drop-shadow(0 0 6px hsla(${hue}, 80%, 60%, ${emphasized ? 0.55 : 0.3}))`,
-                    transition: 'opacity 200ms, stroke-width 200ms',
+                    transition: 'stroke-width 200ms',
                   }}
                 />
                 {/* fat invisible hit-line for hover/click */}
@@ -261,19 +312,18 @@ function OverviewChart({
         </ChartFrame>
 
         {histories.map((h) => {
-          const points = pointsOf(h);
-          const { left, top } = pctOf(points[points.length - 1], frame);
+          const endpoint = endpoints.find((e) => e.id === h.member.id)!;
           const hue = hueFor(h.member.name);
-          const dimmed = selectedId !== null && h.member.id !== selectedId;
           return (
             <button
               key={h.member.id}
               onClick={() => onSelect(h.member.id)}
               onMouseEnter={() => onHover(h.member.id)}
               onMouseLeave={() => onHover(null)}
+              title={`${h.member.name} — ${h.currentElo} ELO`}
               aria-label={`${h.member.name}, now ${h.currentElo} ELO — show rating history`}
-              className="group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full p-1.5 transition-opacity hover:z-20"
-              style={{ left: `${left}%`, top: `${top}%`, opacity: dimmed ? 0.35 : 1 }}
+              className="group absolute z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full p-1.5 hover:z-20"
+              style={{ left: `${endpoint.left}%`, top: `${endpoint.top}%` }}
             >
               <span
                 className="rounded-full transition-transform group-hover:scale-110"
@@ -536,7 +586,13 @@ export default function EloTracker({
   function select(id: string) {
     interactedRef.current = true;
     setHoveredLine(null);
-    setSelectedId((prev) => (prev === id ? null : id));
+    setSelectedId(id);
+  }
+
+  function clearSelection() {
+    interactedRef.current = true;
+    setHoveredLine(null);
+    setSelectedId(null);
   }
 
   if (histories.length === 0) {
@@ -564,59 +620,46 @@ export default function EloTracker({
     <div className="space-y-8">
       <section className="space-y-3">
         <h2 className="section-title">
-          Rating trails
+          Everyone, week by week
           <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
         </h2>
         <div className="card space-y-4 p-4 sm:p-5">
-          <div className="flex flex-wrap gap-1.5">
-            {histories.map((h) => {
-              const isSelected = h.member.id === selectedId;
-              return (
-                <button
-                  key={h.member.id}
-                  onClick={() => select(h.member.id)}
-                  onMouseEnter={() => setHoveredLine(h.member.id)}
-                  onMouseLeave={() => setHoveredLine(null)}
-                  aria-pressed={isSelected}
-                  className={`flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-xs font-bold transition ${
-                    isSelected
-                      ? 'bg-accent/15 text-accent ring-1 ring-accent/50'
-                      : 'bg-black/25 text-slate-300 ring-1 ring-white/5 hover:bg-white/10 hover:text-slate-100'
-                  } ${h.member.active ? '' : 'opacity-50'}`}
-                >
-                  <Avatar
-                    name={h.member.name}
-                    avatarPath={h.member.avatarPath}
-                    colors={h.member.colors}
-                    size={22}
-                    dimmed={!isSelected}
-                  />
-                  <span className="max-w-[10rem] truncate">{h.member.nickname ?? h.member.name}</span>
-                  <span className={`tabular-nums ${isSelected ? 'text-accent/80' : 'text-slate-500'}`}>
-                    {h.currentElo}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
           <OverviewChart
             histories={histories}
-            selectedId={selectedId}
             hoveredId={hoveredLine}
             onSelect={select}
             onHover={setHoveredLine}
           />
           <p className="text-center text-[11px] font-semibold text-slate-500">
-            Click a trail or a duelist above — every point on the detail chart is the opponent they faced.
+            Ratings sampled at the start of each week (gridlines); each trail ends at the duelist's current
+            standing. Hover to trace a duelist, click one to inspect their matches below.
           </p>
         </div>
       </section>
 
       <section ref={detailRef} className="space-y-3 scroll-mt-24">
-        <h2 className="section-title">
-          {selected ? `${selected.member.nickname ?? selected.member.name}'s climb` : 'Duelist detail'}
-          <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="section-title">
+            {selected ? `${selected.member.nickname ?? selected.member.name}'s climb` : 'Duelist detail'}
+            <span className="h-px flex-1 bg-gradient-to-r from-navy via-plum to-transparent" />
+          </h2>
+          <label className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">Inspect</span>
+            <select
+              aria-label="Pick duelist to inspect"
+              value={selectedId ?? ''}
+              onChange={(e) => (e.target.value ? select(e.target.value) : clearSelection())}
+              className="w-56 cursor-pointer rounded-lg border border-white/10 bg-panel px-3 py-1.5 text-sm font-semibold text-slate-200 focus:border-accent focus:outline-none"
+            >
+              <option value="">— everyone —</option>
+              {histories.map((h) => (
+                <option key={h.member.id} value={h.member.id}>
+                  {h.member.nickname ?? h.member.name} ({h.currentElo})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         {selected ? (
           <div className="card space-y-4 p-4 sm:p-5">
@@ -637,9 +680,6 @@ export default function EloTracker({
                   </p>
                 </div>
               </div>
-              <button type="button" onClick={() => setSelectedId(null)} className="btn-ghost !px-3 !py-1.5 !text-xs">
-                ✕ Close
-              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

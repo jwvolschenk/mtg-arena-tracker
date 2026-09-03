@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { buildEloHistories, type EloEvent } from './eloHistory';
+import {
+  buildEloHistories,
+  utcMonday,
+  weekStartsBetween,
+  weeklySamples,
+  type EloEvent,
+} from './eloHistory';
 
 const DAY = 24 * 60 * 60 * 1000;
 const BASE = Date.UTC(2026, 8, 1); // 2026-09-01
@@ -115,5 +121,68 @@ describe('buildEloHistories', () => {
     const ana = histories.find((h) => h.member.id === 'ana')!;
     expect(ana.events[0].outcome).toBe('draw');
     expect(people.map((p) => p.id)).toContain('idle');
+  });
+});
+
+describe('utcMonday / weekStartsBetween', () => {
+  it('snaps to the Monday of the Mon–Sun week', () => {
+    expect(utcMonday(Date.UTC(2026, 8, 1))).toBe(Date.UTC(2026, 7, 31)); // Tuesday
+    expect(utcMonday(Date.UTC(2026, 8, 6))).toBe(Date.UTC(2026, 7, 31)); // Sunday, same week
+    expect(utcMonday(Date.UTC(2026, 8, 7))).toBe(Date.UTC(2026, 8, 7)); // Monday itself
+  });
+
+  it('lists every Monday covering the range, inclusive', () => {
+    const weeks = weekStartsBetween(Date.UTC(2026, 8, 1), Date.UTC(2026, 8, 16));
+    expect(weeks).toEqual([Date.UTC(2026, 7, 31), Date.UTC(2026, 8, 7), Date.UTC(2026, 8, 14)]);
+  });
+});
+
+describe('weeklySamples', () => {
+  const d = (y: number, m: number, day: number) => Date.UTC(y, m, day);
+
+  function historyWith(createdAt: number, elo: number, events: { date: number; after: number }[]) {
+    return {
+      member: { id: 'ana', name: 'ana', nickname: null, avatarPath: null, colors: null, active: true },
+      currentElo: elo,
+      startElo: 1200,
+      anchorDate: createdAt,
+      peakElo: elo,
+      events: events.map((e, i) => ({
+        id: `e${i}`,
+        date: e.date,
+        before: 1200,
+        after: e.after,
+        outcome: 'win' as const,
+        opponentId: 'bob',
+        kind: 'challenge' as const,
+        context: 'Challenge',
+      })),
+    };
+  }
+
+  it('carries the standing rating into each week and ends at the current rating', () => {
+    // joined Thu Aug 20; won Sun Aug 30 (→1216) and Mon Aug 31 (→1232); domain ends Mon Aug 31
+    const h = historyWith(d(2026, 7, 20), 1232, [
+      { date: d(2026, 7, 30), after: 1216 },
+      { date: d(2026, 7, 31), after: 1232 },
+    ]);
+    const pts = weeklySamples(h, d(2026, 7, 20), d(2026, 7, 31));
+    expect(pts).toEqual([
+      { date: d(2026, 7, 20), elo: 1200 }, // entry
+      { date: d(2026, 7, 24), elo: 1200 }, // Mon Aug 24 — nothing played yet
+      { date: d(2026, 7, 31), elo: 1216 }, // entering Mon Aug 31 — Sunday's win carries in
+      { date: d(2026, 7, 31), elo: 1232 }, // current standing at the right edge
+    ]);
+  });
+
+  it('skips the week the member joined (entry point covers it) and dedupes a settled Monday edge', () => {
+    // joined Mon Aug 31; global domain runs Sep 1 → Mon Sep 7, rating at rest
+    const h = historyWith(d(2026, 7, 31), 1200, [{ date: d(2026, 7, 31), after: 1200 }]);
+    const end = d(2026, 8, 7);
+    const pts = weeklySamples(h, d(2026, 8, 1), end);
+    expect(pts).toEqual([
+      { date: d(2026, 7, 31), elo: 1200 }, // entry — Mon Aug 31 sample suppressed (same moment)
+      { date: end, elo: 1200 }, // Monday == right edge with the right rating → single final sample
+    ]);
   });
 });

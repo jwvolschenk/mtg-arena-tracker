@@ -25,6 +25,12 @@ export interface EloPerson {
   active: boolean;
 }
 
+/** A chart sample: a rating standing at a point in time. */
+export interface SamplePoint {
+  date: number;
+  elo: number;
+}
+
 export interface EloHistory {
   member: EloPerson;
   currentElo: number;
@@ -172,4 +178,44 @@ export async function getEloHistories() {
     results,
     challenges,
   );
+}
+
+/** Monday 00:00 UTC on or before ms — UTC keeps server and client ticks identical. */
+export function utcMonday(ms: number): number {
+  const d = new Date(ms);
+  const diff = d.getUTCDay() === 0 ? -6 : 1 - d.getUTCDay();
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff);
+}
+
+/** Monday week starts covering [minDate, maxDate] (Mon–Sun weeks, inclusive). */
+export function weekStartsBetween(minDate: number, maxDate: number): number[] {
+  const out: number[] = [];
+  for (let m = utcMonday(minDate); m <= utcMonday(maxDate); m += 7 * 86_400_000) out.push(m);
+  return out;
+}
+
+/**
+ * Weekly ELO samples for the global chart: the rating a duelist was standing
+ * on entering each week (last result before that Monday, else their entry
+ * rating), bracketed by their entry point and a final sample at their latest
+ * result carrying their current rating — trails end where the action ended.
+ */
+export function weeklySamples(history: EloHistory, minDate: number, maxDate: number): SamplePoint[] {
+  const pts: SamplePoint[] = [{ date: history.anchorDate, elo: history.startElo }];
+
+  for (const week of weekStartsBetween(minDate, maxDate)) {
+    if (week <= history.anchorDate) continue; // not around yet that Monday
+    let elo: number | null = null;
+    for (const e of history.events) {
+      if (e.date < week) elo = e.after;
+    }
+    pts.push({ date: week, elo: elo ?? history.startElo });
+  }
+
+  const lastResult = history.events[history.events.length - 1];
+  const last = pts[pts.length - 1];
+  if (last.date < lastResult.date || last.elo !== history.currentElo) {
+    pts.push({ date: lastResult.date, elo: history.currentElo });
+  }
+  return pts;
 }
